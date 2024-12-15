@@ -1,0 +1,8 @@
+# Get all computer accounts
+$computers = Get-ADComputer -Filter * | Select-Object -ExpandProperty Name
+
+# Force GPUpdate
+foreach ($computer in $computers) {
+    Invoke-Command -ComputerName $computer -ScriptBlock { gpupdate /force }
+    Write-Host "Group Policy updated on $computer" -ForegroundColor Green
+}
