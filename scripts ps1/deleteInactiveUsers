@@ -1,0 +1,50 @@
+# Import the Active Directory module
+Import-Module ActiveDirectory
+
+# Set the date limit (90 days ago)
+$dateLimit = (Get-Date).AddDays(-90)
+
+# Define the path for the report
+$reportPath = "C:\Temp\DeletedInactiveUsersReport.csv"
+
+# Find inactive users (last logon date older than 90 days)
+$inactiveUsers = Get-ADUser -Filter {LastLogonDate -lt $dateLimit -and Enabled -eq $true} -Properties SamAccountName, LastLogonDate, DisplayName, EmailAddress
+
+# Check if there are any inactive users
+if ($inactiveUsers.Count -eq 0) {
+    Write-Host "No inactive users found." -ForegroundColor Green
+} else {
+    # Prepare an array to store details of deleted users
+    $deletedUsers = @()
+
+    # Display a warning with the count of users to be deleted
+    Write-Host "Found $($inactiveUsers.Count) inactive users. Deleting them now..." -ForegroundColor Yellow
+
+    # Iterate over each user and remove them from Active Directory
+    foreach ($user in $inactiveUsers) {
+        try {
+            # Remove the user
+            Remove-ADUser -Identity $user.SamAccountName -Confirm:$false
+
+            # Add the deleted user details to the report array
+            $deletedUsers += [PSCustomObject]@{
+                SamAccountName = $user.SamAccountName
+                DisplayName    = $user.DisplayName
+                EmailAddress   = $user.EmailAddress
+                LastLogonDate  = $user.LastLogonDate
+                DeletionDate   = (Get-Date)
+            }
+
+            Write-Host "Deleted user: $($user.SamAccountName)" -ForegroundColor Cyan
+        } catch {
+            # Log any errors during deletion
+            Write-Host "Failed to delete user: $($user.SamAccountName). Error: $_" -ForegroundColor Red
+        }
+    }
+
+    # Export the deleted users report to a CSV file
+    $deletedUsers | Export-Csv -Path $reportPath -NoTypeInformation -Encoding UTF8
+
+    # Confirm the report generation
+    Write-Host "Inactive users deleted successfully. Report generated at: $reportPath" -ForegroundColor Green
+}
