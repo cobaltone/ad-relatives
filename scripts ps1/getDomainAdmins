@@ -1,0 +1,8 @@
+# When we work using Zero Trust is VERY IMPORTANT to get everyone who is domain admin and remove the most.
+# Get Domain Admins group members
+$domainAdmins = Get-ADGroupMember -Identity "Domain Admins" -Recursive | 
+    Select-Object Name, SamAccountName, ObjectClass
+
+# Export to CSV
+$domainAdmins | Export-Csv -Path "C:\Temp\DomainAdminsReport.csv" -NoTypeInformation -Encoding UTF8
+Write-Host "Domain Admins report saved to C:\Temp\DomainAdminsReport.csv" -ForegroundColor Green
