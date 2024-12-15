@@ -1,0 +1,14 @@
+# Gonna import the AD :)
+Import-Module ActiveDirectory
+
+$dateDeadline = (Get-Date).AddDays(-90)
+
+# Find inactive users
+$inactiveUsers = Get-ADUser -Filter {LastLogonDate -lt $dateDeadline -and Enabled -eq $true} -Properties LastLogonDate, SamAccountName, DisplayName, EmailAddress | 
+    Select-Object SamAccountName, DisplayName, EmailAddress, @{Name="LastLogonDate"; Expression={$_.LastLogonDate}}
+
+# CSV Export
+$inactiveUsers | Export-Csv -Path "C:\Temp\InactiveUsers" -NoTypeInformation -Encoding UTF8
+
+# Validation!
+Write-Host "Report in C:\Temp\InactiveUsers"
