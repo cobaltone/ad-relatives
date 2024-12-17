@@ -1,0 +1,8 @@
+# find shared accounts 
+# i would suggest after the "*Admin*" u put something like a -or Name -like "costumername"
+$sharedAccounts = Get-ADUser -Filter {Name -like "*Admin*"} |
+    Select-Object Name, SamAccountName, Enabled
+
+# export to CSV
+$sharedAccounts | Export-Csv -Path "C:\Temp\findSharedAccounts.csv" -NoTypeInformation -Encoding UTF8
+Write-Host "Shared accounts report saved to C:\Temp\findSharedAccounts.csv" -ForegroundColor Green
