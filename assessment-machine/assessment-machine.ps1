@@ -63,7 +63,7 @@ if (-not (Get-Module -ListAvailable -Name ImportExcel)) {
 Import-Module ImportExcel
 
 # Export to Excel
-$excelPath = "C:\Users\eversafe.leandro\Documents\github-cobaltone\reports\assessment-detailed.xlsx"
+$excelPath = "C:\assessment-detailed.xlsx"
 $report | Export-Excel -Path $excelPath -WorksheetName "Summary" -AutoSize -MoveToStart
 
 # Domain Controllers Report
