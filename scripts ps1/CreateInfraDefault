@@ -1,0 +1,38 @@
+# Pega o domínio atual automaticamente
+$dominio = (Get-ADDomain).DistinguishedName
+
+Write-Host "`nDominio detectado: $dominio`n"
+
+# Lista de OUs e caminhos
+$ouList = @(
+    "OU=Infraestrutura,$dominio",
+    "OU=Certificates,OU=Infraestrutura,$dominio",
+    "OU=Network-Mapping,OU=Infraestrutura,$dominio",
+    "OU=Services,OU=Infraestrutura,$dominio",
+    "OU=Fortigate,OU=Services,OU=Infraestrutura,$dominio",
+    "OU=NV1,OU=Fortigate,OU=Services,OU=Infraestrutura,$dominio",
+    "OU=NV2,OU=Fortigate,OU=Services,OU=Infraestrutura,$dominio",
+    "OU=NV3,OU=Fortigate,OU=Services,OU=Infraestrutura,$dominio",
+    "OU=NV4,OU=Fortigate,OU=Services,OU=Infraestrutura,$dominio",
+    "OU=Microsoft,OU=Services,OU=Infraestrutura,$dominio",
+    "OU=O365,OU=Microsoft,OU=Services,OU=Infraestrutura,$dominio",
+    "OU=Third-Parties,OU=Infraestrutura,$dominio",
+    "OU=Eversafe,OU=Third-Parties,OU=Infraestrutura,$dominio",
+    "OU=Unidades,OU=Infraestrutura,$dominio"
+)
+
+# Cria cada OU se ela ainda não existir
+foreach ($ouDN in $ouList) {
+    try {
+        if (-not (Get-ADOrganizationalUnit -LDAPFilter "(distinguishedName=$ouDN)" -ErrorAction SilentlyContinue)) {
+            $ouName = ($ouDN -split ",")[0] -replace "OU=", ""
+            $ouPath = ($ouDN -replace "^OU=[^,]+,", "")
+            Write-Host "🔧 Criando OU: $ouName em $ouPath"
+            New-ADOrganizationalUnit -Name $ouName -Path $ouPath -ProtectedFromAccidentalDeletion $false
+        } else {
+            Write-Host "OU já existe: $ouDN"
+        }
+    } catch {
+        Write-Warning "Erro ao criar: $ouDN - $_"
+    }
+}
